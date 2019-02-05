@@ -61,17 +61,19 @@ model_knn
 plot(model_knn)
 
 # Validation
-valid_pred <- predict(model1,validation, type = "prob")
+valid_pred <- predict(model_knn,validation_set, type = "prob")
 
 #Storing Model Performance Scores
+
+# computing a simple ROC curve
 library(ROCR)
-pred_val <-prediction(valid_pred[,2],validation$Win.Loss)
+pred_val <-prediction(valid_pred[,2],validation_set$Win.Loss)
 
 # Calculating Area under Curve (AUC)
 perf_val <- performance(pred_val,"auc")
 perf_val
 
-# Plot AUC
+# Plot AUC (x-axis: fpr, y-axis: tpr)
 perf_val <- performance(pred_val, "tpr", "fpr")
 plot(perf_val, col = "green", lwd = 1.5)
 
@@ -79,5 +81,8 @@ plot(perf_val, col = "green", lwd = 1.5)
 ks <- max(attr(perf_val, "y.values")[[1]]-(attr(perf_val, "x.values")[[1]]))
 ks
 
-
+#sensitivity/specificity curve (x-axis: specificity,
+#y-axis: sensitivity)
+perf_val2 <- performance(pred_val, "sens", "spec")
+plot(perf_val2)
 
