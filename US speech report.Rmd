@@ -209,9 +209,12 @@ valid_pred <- predict(model_knn,validation_set, type = "prob")
 
 **Results analysis**
 
-In this section we are going to use ROCR library. 
+How well does our model perform?
+In this section, we are going to evaluate our algorithm thanks to:
+- the AUC (Area under the curve) and KS statistics 
+- the Kolmogorov-Smirnov (K-S) statistics
 
-First we calculate the predictions on the validation_set:
+First let's calculate the predictions on the validation_set:
 
 ```{r}
 #Storing Model Performance Scores
@@ -230,19 +233,27 @@ pred_val <-prediction(valid_pred[,2],validation_set$Win.Loss)
 perf_val <- performance(pred_val,"auc")
 perf_val
 
-# Plot AUC
+# Plot AUC (x-axis: fpr, y-axis: tpr)
 perf_val <- performance(pred_val, "tpr", "fpr")
 plot(perf_val, col = "green", lwd = 1.5)
+auc <- auc@y.values[[1]]
 ```
-Now we calculate the KS statistic. We take the max delt between cumulative bad and good rates. 
+The Area under curve (AUC) on validation_set is 0.8670378.
 
+Now let's calculate and plot Kolmogorov-Smirnov statistics. The K-S criterion is based on the expectation that there is likely to be a difference between a discrete distribution generated from data and the continuous distribution from which it was drawn, caused by step difference and random error. As n increases, the size of the difference is expected to decrease. If the measured maximum difference is smaller than that expected, then the probability that the distributions are the same is high.
 
 ```{r}
 ks <- max(attr(perf_val, "y.values")[[1]]-(attr(perf_val, "x.values")[[1]]))
+plot(perf_val,main=paste0(' KS=',round(ks*100,1),'%'))
+lines(x = c(0,1),y=c(0,1))
 ks
 ```
+The value of K-S is 55.2%.
 
 ### 4. Conclusion ###
+
+To conclude, we can say that the AUC of our model is quite good (0.86). Indeed, AUC value generally lies between 0.5 to 1 where 0.5 denotes a bad classifer and 1 denotes an excellent classifier. The K-S results (55.2%) is also quite good as it is closer to 1 than to 0.
+
 
 
 ```{r}
