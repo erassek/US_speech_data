@@ -76,9 +76,12 @@ perf_val
 # Plot AUC (x-axis: fpr, y-axis: tpr)
 perf_val <- performance(pred_val, "tpr", "fpr")
 plot(perf_val, col = "green", lwd = 1.5)
+auc <- auc@y.values[[1]]
 
-#Calculating KS statistics
+#Calculating and plotting KS statistics
 ks <- max(attr(perf_val, "y.values")[[1]]-(attr(perf_val, "x.values")[[1]]))
+plot(perf_val,main=paste0(' KS=',round(ks*100,1),'%'))
+lines(x = c(0,1),y=c(0,1))
 ks
 
 #sensitivity/specificity curve (x-axis: specificity,
