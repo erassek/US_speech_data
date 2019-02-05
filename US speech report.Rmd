@@ -240,7 +240,17 @@ auc <- auc@y.values[[1]]
 ```
 The Area under curve (AUC) on validation_set is 0.8670378.
 
-Now let's calculate and plot Kolmogorov-Smirnov statistics. The K-S criterion is based on the expectation that there is likely to be a difference between a discrete distribution generated from data and the continuous distribution from which it was drawn, caused by step difference and random error. As n increases, the size of the difference is expected to decrease. If the measured maximum difference is smaller than that expected, then the probability that the distributions are the same is high.
+Now let's plot the sensitivity/sensibility curve
+
+```{r}
+#sensitivity/specificity curve (x-axis: specificity,
+#y-axis: sensitivity)
+perf_val2 <- performance(pred_val, "sens", "spec")
+plot(perf_val2)
+
+```
+
+Finally let's calculate and plot Kolmogorov-Smirnov statistics. The K-S criterion is based on the expectation that there is likely to be a difference between a discrete distribution generated from data and the continuous distribution from which it was drawn, caused by step difference and random error. As n increases, the size of the difference is expected to decrease. If the measured maximum difference is smaller than that expected, then the probability that the distributions are the same is high.
 
 ```{r}
 ks <- max(attr(perf_val, "y.values")[[1]]-(attr(perf_val, "x.values")[[1]]))
@@ -252,14 +262,7 @@ The value of K-S is 55.2%.
 
 ### 4. Conclusion ###
 
-To conclude, we can say that the AUC of our model is quite good (0.86). Indeed, AUC value generally lies between 0.5 to 1 where 0.5 denotes a bad classifer and 1 denotes an excellent classifier. The K-S results (55.2%) is also quite good as it is closer to 1 than to 0.
-
-
-
-```{r}
-
-```
-The Area under curve (AUC) on validation dataset is .
+To conclude, we can say that the AUC of our model is quite good (0.86). Indeed, AUC value generally lies between 0.5 to 1 where 0.5 denotes a bad classifer and 1 denotes an excellent classifier. The K-S results (55.2%) is also quite good as it is closer to 1 than to 0. 
 
 
 
