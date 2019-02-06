@@ -6,6 +6,8 @@ data_US <- read.csv(data_US_github)
 # load library
 library(caret)
 library(e1071)
+library(dplyr)
+library(tidyverse)
 
 
 # Transforming the dependent variable to a factor
@@ -84,8 +86,4 @@ plot(perf_val,main=paste0(' KS=',round(ks*100,1),'%'))
 lines(x = c(0,1),y=c(0,1))
 ks
 
-#sensitivity/specificity curve (x-axis: specificity,
-#y-axis: sensitivity)
-perf_val2 <- performance(pred_val, "sens", "spec")
-plot(perf_val2)
 
