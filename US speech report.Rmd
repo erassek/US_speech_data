@@ -236,7 +236,6 @@ perf_val
 # Plot AUC (x-axis: fpr, y-axis: tpr)
 perf_val <- performance(pred_val, "tpr", "fpr")
 plot(perf_val, col = "green", lwd = 1.5)
-auc <- auc@y.values[[1]]
 ```
 The Area under curve (AUC) on validation_set is 0.8670378.
 
