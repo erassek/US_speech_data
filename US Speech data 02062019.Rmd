@@ -1,0 +1,265 @@
+---
+title: "US data"
+author: "Emmanuelle"
+date: "February 2019"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+##Report##
+##US presidential speech analysis##
+```{r setup, include=FALSE}
+# upload the dataset
+data_US_github <- "https://raw.githubusercontent.com/erassek/US_speech_data/master/US%20Presidential%20Data.csv"
+data_US <- read.csv(data_US_github)
+# load library
+library(caret)
+library(e1071)
+library(dplyr)
+library(tidyverse)
+# Transforming the dependent variable to a factor
+data_US$Win.Loss = as.factor(data_US$Win.Loss)
+# Exploratory data analysis
+ggplot(gather(data_US[,2:ncol(data_US)]), aes(value)) + 
+  geom_histogram(bins = 5, fill = "blue", alpha = 0.6) + 
+  facet_wrap(~key, scales = 'free_x')
+#Partitioning the data into training and validation data
+set.seed(101)
+index = createDataPartition(data_US$Win.Loss, p = 0.7, list = F )
+train_set = data_US[index,]
+validation_set = data_US[-index,]
+# Setting levels for both training and validation data
+levels(train_set$Win.Loss) <- make.names(levels(factor(train_set$Win.Loss)))
+levels(validation_set$Win.Loss) <- make.names(levels(factor(validation_set$Win.Loss)))
+```
+
+###1. Executive summary###
+
+For this project, we will use the "Presidential Debates" dataset (Data_US) composed of 14 variables. The objective is to predict if a candidate will win or lose a speech.
+
+In order reach our goal, we will create a KNN model, which is non parametric supervised machine learning algorithm used for classification and regression. It calculates similarity amongst observations based on a distance function (usually Euclidean). 
+
+We will first divide the dataset into two subsets:
+
+- a training subset to train our algorithm, called "train_set" (70%)
+- a validation subset to predict the movie ratings, called "validation_set" (30%)
+
+In the first part of the report, we will use techniques such as data exploration and visualization to have an overview of the dataset. 
+
+Then, we will train the KNN model and predict the values accordingly. 
+
+Finally, we will explain the results and conclude. 
+
+All the analysis will be made through R studio and the following packages: caret, e1071,dplyr and tidyverse.
+
+
+###2. Analysis: data description, preparation, exploration and visualization###
+
+#### 2.A. Data description ####
+
+
+In this section we will take a first look at our datasets and check if data cleaning is necessary. 
+
+Please find below the structure of the datasets: 
+
+- data_US (complete dataset): 1524 observations of  14 variables
+
+- train_set: 1068 observations of  14 variables
+
+- validation_set: 456 observations of  14 variables
+
+```{r}
+dim(data_US)
+dim(train_set)
+dim(validation_set)
+```
+
+It seems that there is no missing data and no data cleaning necessary. 
+However we need to set levels for both training and validation data.
+
+```{r}
+# Setting levels for both training and validation data
+levels(train_set$Win.Loss) <- make.names(levels(factor(train_set$Win.Loss)))
+levels(validation_set$Win.Loss) <- make.names(levels(factor(validation_set$Win.Loss)))
+```
+
+Please find below the 14 variables: 
+- "Win.Loss": result of the speech
+- "Optimism"
+- "Pessimism"
+- "PastUsed"
+- "FutureUsed"
+- "PresentUsed"
+- "OwnPartyCount"
+- "OppPartyCount"
+- "NumericContent"
+- "Extra"
+- "Emoti"
+- "Agree"
+- "Consc" 
+- "Openn".  
+
+In our analysis "Win.Loss" is the dependant variable whereas the 13 others are the independant variables. 
+
+Each independant variable represents the use of specific words or expressions in the speech. 
+
+#### 2.B. Data exploration ####
+
+Let's analyse the structure of the 14 variables:
+
+```{r}
+summary(data_US$Win.Loss)
+summary(data_US$Optimism)
+summary(data_US$Pessimism)
+summary(data_US$PastUsed)
+summary(data_US$Futureused)
+summary(data_US$PresentUsed)
+summary(data_US$OwnPartyCount)
+summary(data_US$OppPartyCount)
+summary(data_US$NumericContent)
+summary(data_US$Extra)
+summary(data_US$Emoti)
+summary(data_US$Agree)
+summary(data_US$Consc)
+summary(data_US$Win.Openn)
+```
+
+
+####  2.C. Data visualization ####
+
+**Please find below the graphics of the 13 independant variables**
+```{r}
+ggplot(gather(data_US[,2:ncol(data_US)]), aes(value)) + 
+  geom_histogram(bins = 5, fill = "blue", alpha = 0.6) + 
+  facet_wrap(~key, scales = 'free_x')
+  
+```
+
+Thanks to the preparation and exploration of the dataset, we are now ready to create our machine learning model. 
+
+####  2.D. Modelling approach####
+
+The objective is to define a method that will allow us to train several algorithms in order to identify the best one. 
+
+We will proceed in five steps:
+
+- Setting up train controls
+
+- Training of the KNN model (on train_set)
+
+- Predictions (on the validation_set)
+
+- Analysis of the results. 
+
+- Conclusion
+
+
+### 3. Data analysis and results ###
+
+**Data partition**
+
+In order to reach our goal, we divided the Data_US dataset into two subsets:
+
+- the training subset to train our algorithm, called "train_set" (70% of US_data)
+- the validation subset to predict the result of the speech, called"validation_set" (30% of US_data)
+
+We are now ready to create our predictive model. 
+
+
+**Setting up train controls**
+
+Let's set up train controls and build the KNN model. 
+
+```{r}
+repeats = 3
+numbers = 10
+tunel = 10
+set.seed(1234)
+x <- trainControl(method = "repeatedcv",
+                 number = numbers,
+                 repeats = repeats,
+                 classProbs = TRUE,
+                 summaryFunction = twoClassSummary)
+                 
+```
+
+**Training of the model**
+
+We are now ready to train our KNN model:
+
+```{r}
+model_knn <- train(Win.Loss~., data= train_set, method="knn", 
+                preProcess=c("center","scale"),
+                trControl=x,metric="ROC",
+                tuneLength= tunel)
+                
+# Summary of model
+model_knn
+plot(model_knn)
+```
+
+**Predictions**
+
+
+```{r}
+# Validation
+valid_pred <- predict(model_knn,validation_set, type = "prob")
+```
+
+**Results analysis**
+
+How well does our model perform?
+
+In this section, we are going to evaluate our algorithm thanks to:
+
+- the AUC (Area under the curve) 
+
+- the Kolmogorov-Smirnov (K-S) statistics
+
+
+First let's calculate the predictions on the validation_set:
+
+```{r}
+#Storing Model Performance Scores
+library(ROCR)
+pred_val <-prediction(valid_pred[,2],validation_set$Win.Loss)
+```
+
+Now let's calculate and plot the AUC (Area Under the Curve):
+
+```{r}
+#Storing Model Performance Scores
+library(ROCR)
+pred_val <-prediction(valid_pred[,2],validation_set$Win.Loss)
+# Calculating Area under Curve (AUC)
+perf_val <- performance(pred_val,"auc")
+perf_val
+# Plot AUC (x-axis: fpr, y-axis: tpr)
+perf_val <- performance(pred_val, "tpr", "fpr")
+plot(perf_val, col = "green", lwd = 1.5)
+```
+
+The Area under curve (AUC) on validation_set is 0.8670378.
+
+Finally let's calculate and plot Kolmogorov-Smirnov statistics. 
+
+```{r}
+ks <- max(attr(perf_val, "y.values")[[1]]-(attr(perf_val, "x.values")[[1]]))
+plot(perf_val,main=paste0(' KS=',round(ks*100,1),'%'))
+lines(x = c(0,1),y=c(0,1))
+ks
+```
+
+The value of K-S is 55.2%.
+
+### 4. Conclusion ###
+
+To conclude, we can say that the AUC of our model is quite good (0.86). Indeed, AUC value generally lies between 0.5 to 1 where 0.5 denotes a bad classifer and 1 denotes an excellent classifier. 
+
+The K-S results (55.2%) is also quite good as it is closer to 1 than to 0. 
+
+However we could continue our research in order to find a model with a better accuracy. 
+
+
